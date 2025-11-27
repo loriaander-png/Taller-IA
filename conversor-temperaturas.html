@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Conversor de Temperaturas</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #999;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .input-group {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #555;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 1rem;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .results {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 30px;
+    }
+
+    .result-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .result-item:last-child {
+      border-bottom: none;
+    }
+
+    .result-label {
+      color: #666;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    .result-value {
+      font-size: 1.2rem;
+      font-weight: bold;
+      color: #667eea;
+      background: white;
+      padding: 8px 15px;
+      border-radius: 6px;
+      min-width: 120px;
+      text-align: right;
+    }
+
+    .error {
+      background: #fee;
+      color: #c33;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      display: none;
+      font-size: 0.95rem;
+      border-left: 4px solid #c33;
+    }
+
+    .error.show {
+      display: block;
+    }
+
+    .info {
+      background: #e8f4f8;
+      color: #0277bd;
+      padding: 12px 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 0.9rem;
+      line-height: 1.6;
+      border-left: 4px solid #0277bd;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>🌡️ Conversor de Temperaturas</h1>
+    <p class="subtitle">Convierte entre Celsius, Fahrenheit y Kelvin</p>
+
+    <div class="input-group">
+      <label for="celsius">Temperatura en Celsius (°C)</label>
+      <input 
+        type="number" 
+        id="celsius" 
+        placeholder="Ej: 25" 
+        step="0.01"
+      >
+    </div>
+
+    <button onclick="convertirTemperatura()">Convertir</button>
+
+    <div id="error" class="error"></div>
+
+    <div class="results" id="results" style="display: none;">
+      <div class="result-item">
+        <span class="result-label">Celsius</span>
+        <span class="result-value" id="result-celsius">-</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Fahrenheit</span>
+        <span class="result-value" id="result-fahrenheit">-</span>
+      </div>
+      <div class="result-item">
+        <span class="result-label">Kelvin</span>
+        <span class="result-value" id="result-kelvin">-</span>
+      </div>
+    </div>
+
+    <div class="info">
+      <strong>Fórmulas utilizadas:</strong><br>
+      • Celsius → Fahrenheit: (C × 9/5) + 32<br>
+      • Celsius → Kelvin: C + 273.15<br>
+      <strong>Puntos de referencia:</strong> 0°C = 32°F | 100°C = 212°F
+    </div>
+  </div>
+
+  <script>
+    // Función para convertir temperaturas desde Celsius
+    // Parámetro: celsius (número)
+    // Retorna: objeto con las conversiones a Fahrenheit y Kelvin
+    function convertir(celsius) {
+      // Validar que la entrada sea un número válido
+      if (typeof celsius !== 'number' || isNaN(celsius)) {
+        throw new Error('Debes ingresar un número válido');
+      }
+
+      // Convertir de Celsius a Fahrenheit
+      // Fórmula: (C × 9/5) + 32
+      const fahrenheit = (celsius * 9 / 5) + 32;
+
+      // Convertir de Celsius a Kelvin
+      // Fórmula: C + 273.15
+      const kelvin = celsius + 273.15;
+
+      // Retornar un objeto con los resultados redondeados a 2 decimales
+      return {
+        celsius: Math.round(celsius * 100) / 100,
+        fahrenheit: Math.round(fahrenheit * 100) / 100,
+        kelvin: Math.round(kelvin * 100) / 100
+      };
+    }
+
+    // Función para convertir y actualizar la interfaz
+    function convertirTemperatura() {
+      const inputEl = document.getElementById('celsius');
+      const errorEl = document.getElementById('error');
+      const resultsEl = document.getElementById('results');
+      
+      // Limpiar error previo
+      errorEl.classList.remove('show');
+      errorEl.textContent = '';
+
+      try {
+        // Obtener el valor del input
+        const valor = parseFloat(inputEl.value);
+
+        // Validar que se haya ingresado algo
+        if (inputEl.value.trim() === '') {
+          throw new Error('Por favor, ingresa una temperatura');
+        }
+
+        // Validar que sea un número válido
+        if (isNaN(valor)) {
+          throw new Error('Debes ingresar un número válido');
+        }
+
+        // Llamar a la función de conversión
+        const resultado = convertir(valor);
+
+        // Actualizar los valores en el HTML
+        document.getElementById('result-celsius').textContent = resultado.celsius + ' °C';
+        document.getElementById('result-fahrenheit').textContent = resultado.fahrenheit + ' °F';
+        document.getElementById('result-kelvin').textContent = resultado.kelvin + ' K';
+
+        // Mostrar la sección de resultados
+        resultsEl.style.display = 'block';
+
+      } catch (error) {
+        // Mostrar el mensaje de error
+        errorEl.textContent = '❌ ' + error.message;
+        errorEl.classList.add('show');
+        resultsEl.style.display = 'none';
+      }
+    }
+
+    // Permitir convertir al presionar Enter
+    document.getElementById('celsius').addEventListener('keypress', function(event) {
+      if (event.key === 'Enter') {
+        convertirTemperatura();
+      }
+    });
+
+    // Convertir automáticamente al cambiar el input (opcional)
+    document.getElementById('celsius').addEventListener('input', function() {
+      if (this.value.trim() !== '') {
+        convertirTemperatura();
+      }
+    });
+  </script>
+</body>
+</html>
