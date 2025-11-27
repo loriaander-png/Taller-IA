@@ -1,0 +1,342 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Analizador de Texto — Editor</title>
+  <style>
+    :root{
+      --bg:#f5f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#4f46e5; /* indigo */
+      --accent-2:#06b6d4; /* cyan */
+      --c1:#ff7a7a; /* red-ish */
+      --c2:#ffd166; /* yellow */
+      --c3:#6ee7b7; /* green */
+      --c4:#93c5fd; /* blue */
+      --glass: rgba(255,255,255,0.6);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: linear-gradient(180deg,var(--bg),#e9eefc);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:28px;
+      color:#0f172a;
+    }
+
+    .wrapper{width:100%;max-width:1100px}
+    .header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+    .title{font-size:1.4rem;font-weight:700}
+    .controls{display:flex;gap:10px}
+    button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+    .btn-clear{background:#ef4444;color:white}
+    .btn-copy{background:linear-gradient(90deg,var(--accent),var(--accent-2));color:white}
+
+    .main-grid{display:grid;grid-template-columns:1fr 360px;gap:18px}
+
+    /* Editor */
+    .editor-card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+    textarea#inputText{width:100%;min-height:420px;border-radius:10px;padding:18px;font-size:1rem;border:1px solid #e6eef8;resize:vertical;line-height:1.6}
+
+    /* Stats panel */
+    .stats-card{background:var(--card);border-radius:12px;padding:16px;box-shadow:0 8px 30px rgba(2,6,23,0.06);min-height:420px;display:flex;flex-direction:column;gap:12px}
+    .stats-title{font-weight:700;color:var(--muted);margin-bottom:6px}
+    .stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+
+    .stat{background:linear-gradient(180deg, rgba(255,255,255,0.6), rgba(245,247,251,0.8));padding:12px;border-radius:10px;display:flex;flex-direction:column;gap:6px;min-height:86px;justify-content:center;border-left:6px solid transparent;transition:all 300ms ease}
+    .stat .label{font-size:0.85rem;color:var(--muted)}
+    .stat .value{font-size:1.25rem;font-weight:800;letter-spacing:0.6px;display:inline-block;transition:transform 220ms ease}
+
+    .stat.chars{border-left-color:var(--c4)}
+    .stat.chars-no-spaces{border-left-color:var(--c1)}
+    .stat.words{border-left-color:var(--c3)}
+    .stat.sentences{border-left-color:var(--c2)}
+    .stat.read-time{border-left-color:var(--accent)}
+
+    /* small animation when updating number */
+    .value.update{transform: translateY(-6px); color: #0f172a}
+
+    .footer{margin-top:10px;color:var(--muted);font-size:0.9rem}
+
+    /* Empty / error */
+    .empty-warning{background:#fff7ed;color:#7c2d12;padding:10px;border-radius:8px;border-left:4px solid #ffa94d}
+
+    @media (max-width:980px){
+      .main-grid{grid-template-columns:1fr}
+      textarea#inputText{min-height:320px}
+      .stats-card{min-height:auto}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <div class="title">Analizador de Texto — Editor</div>
+      <div class="controls">
+        <button id="btnClear" class="btn-clear">Limpiar</button>
+        <button id="btnCopy" class="btn-copy">Copiar estadísticas</button>
+      </div>
+    </div>
+
+    <div class="main-grid">
+      <!-- Editor -->
+      <div class="editor-card">
+        <label for="inputText" style="font-weight:700;margin-bottom:8px;display:block">Escribe o pega tu texto:</label>
+        <textarea id="inputText" placeholder="Escribe aquí tu texto..." aria-label="Área de texto para análisis"></textarea>
+        <div id="errorMsg" style="margin-top:12px;display:none" class="empty-warning"></div>
+      </div>
+
+      <!-- Stats -->
+      <aside class="stats-card" aria-live="polite">
+        <div>
+          <div class="stats-title">Estadísticas (en tiempo real)</div>
+          <div style="color:var(--muted);font-size:0.9rem">Actualiza mientras escribes — métricas basadas en el texto actual</div>
+        </div>
+
+        <div class="stats-grid" style="margin-top:12px">
+          <div class="stat chars">
+            <div class="label">Caracteres (con espacios)</div>
+            <div class="value" id="charsCount">0</div>
+          </div>
+
+          <div class="stat chars-no-spaces">
+            <div class="label">Caracteres (sin espacios)</div>
+            <div class="value" id="charsNoSpacesCount">0</div>
+          </div>
+
+          <div class="stat words">
+            <div class="label">Palabras</div>
+            <div class="value" id="wordsCount">0</div>
+          </div>
+
+          <div class="stat sentences">
+            <div class="label">Oraciones</div>
+            <div class="value" id="sentencesCount">0</div>
+          </div>
+
+          <div class="stat read-time" style="grid-column: 1 / -1">
+            <div class="label">Tiempo estimado de lectura (200 wpm)</div>
+            <div class="value" id="readTime">0 min</div>
+          </div>
+        </div>
+
+        <div class="footer">Consejo: la lectura estimada es aproximada y basada en 200 palabras por minuto.</div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    // Elementos del DOM
+    const inputText = document.getElementById('inputText');
+    const charsCountEl = document.getElementById('charsCount');
+    const charsNoSpacesEl = document.getElementById('charsNoSpacesCount');
+    const wordsCountEl = document.getElementById('wordsCount');
+    const sentencesCountEl = document.getElementById('sentencesCount');
+    const readTimeEl = document.getElementById('readTime');
+    const btnClear = document.getElementById('btnClear');
+    const btnCopy = document.getElementById('btnCopy');
+    const errorMsg = document.getElementById('errorMsg');
+
+    // Constantes
+    const WPM = 200; // palabras por minuto (para estimación de lectura)
+
+    // Temporizadores para animación (evita flicker constante)
+    let animTimeouts = [];
+
+    /**
+     * Añade una clase de animación a un elemento .value y la quita tras 220ms
+     * Para dar efecto sutil cuando cambia el número
+     */
+    function animateValue(el) {
+      // limpiar timeouts previos
+      animTimeouts.forEach(t => clearTimeout(t));
+      animTimeouts = [];
+
+      el.classList.add('update');
+      const t = setTimeout(() => el.classList.remove('update'), 220);
+      animTimeouts.push(t);
+    }
+
+    /**
+     * Cuenta caracteres incluyendo espacios
+     * @param {string} text
+     * @returns {number}
+     */
+    function countChars(text) {
+      // Simplemente longitud de la cadena
+      return text.length;
+    }
+
+    /**
+     * Cuenta caracteres sin espacios
+     * @param {string} text
+     * @returns {number}
+     */
+    function countCharsNoSpaces(text) {
+      // Remueve todos los espacios en blanco (incluye tabs y saltos de línea)
+      return text.replace(/\s+/g, '').length;
+    }
+
+    /**
+     * Cuenta palabras en el texto
+     * Considera múltiples espacios y saltos de línea.
+     * Usa una expresión que captura secuencias de letras/dígitos y apostrofes.
+     * @param {string} text
+     * @returns {number}
+     */
+    function countWords(text) {
+      // Trim para quitar espacios al inicio y final
+      const trimmed = text.trim();
+      if (!trimmed) return 0;
+
+      // Coincide palabras (incluye contracciones y palabras con apostrofes)
+      const words = trimmed.match(/\b[\p{L}\p{N}'’-]+\b/gu);
+      return words ? words.length : 0;
+    }
+
+    /**
+     * Cuenta oraciones basadas en ., ?, ! (puede haber abreviaturas, esto es aproximado)
+     * Filtra entradas vacías resultantes de split
+     * @param {string} text
+     * @returns {number}
+     */
+    function countSentences(text) {
+      if (!text) return 0;
+      // Split en puntos, signos de interrogación y exclamación
+      const parts = text.split(/[\.\?\!]+/g);
+      // Contar solo las partes que contienen al menos una letra o número
+      const sentences = parts.filter(p => /[\p{L}\p{N}]/u.test(p.trim()));
+      return sentences.length;
+    }
+
+    /**
+     * Calcula tiempo de lectura dado número de palabras (200 wpm)
+     * Retorna string formato "X min Y s" o "<1 min" si muy corto
+     * @param {number} words
+     * @returns {string}
+     */
+    function calcReadTime(words) {
+      if (words === 0) return '0 min';
+      const minutes = words / WPM;
+      const totalSeconds = Math.round(minutes * 60);
+      if (totalSeconds < 60) return `${totalSeconds} s`;
+      const mins = Math.floor(totalSeconds / 60);
+      const secs = totalSeconds % 60;
+      return secs === 0 ? `${mins} min` : `${mins} min ${secs} s`;
+    }
+
+    /**
+     * Actualiza todas las métricas en pantalla a partir del texto actual
+     * - Valida si el texto está vacío y muestra mensaje
+     * - Llama a las funciones de conteo
+     */
+    function updateStats() {
+      const text = inputText.value;
+
+      // Manejo de texto vacío
+      if (!text || text.trim().length === 0) {
+        // Mostrar advertencia y resetear métricas
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'El texto está vacío. Escribe o pega texto para analizar.';
+
+        setMetric(charsCountEl, 0);
+        setMetric(charsNoSpacesEl, 0);
+        setMetric(wordsCountEl, 0);
+        setMetric(sentencesCountEl, 0);
+        setMetric(readTimeEl, '0 min');
+        return;
+      }
+
+      // Ocultar mensaje de error si hay texto
+      errorMsg.style.display = 'none';
+
+      // Calcular métricas
+      const chars = countChars(text);
+      const charsNoSpaces = countCharsNoSpaces(text);
+      const words = countWords(text);
+      const sentences = countSentences(text);
+      const readTime = calcReadTime(words);
+
+      // Actualizar elementos y animar cambios
+      setMetric(charsCountEl, chars);
+      setMetric(charsNoSpacesEl, charsNoSpaces);
+      setMetric(wordsCountEl, words);
+      setMetric(sentencesCountEl, sentences);
+      setMetric(readTimeEl, readTime);
+    }
+
+    /**
+     * Actualiza el contenido de un elemento de métrica y aplica animación sutil
+     * @param {HTMLElement} el
+     * @param {string|number} value
+     */
+    function setMetric(el, value) {
+      // Cambiar contenido
+      el.textContent = value;
+      // Animar
+      animateValue(el);
+    }
+
+    /**
+     * Limpia el textarea y resetea métricas y mensajes
+     */
+    function clearAll() {
+      inputText.value = '';
+      updateStats();
+      inputText.focus();
+    }
+
+    /**
+     * Copia las estadísticas al portapapeles en formato legible
+     * Incluye manejo de errores básico y confirmación visual
+     */
+    function copyStats() {
+      // Preparar texto de estadísticas
+      const text = inputText.value.trim();
+      if (!text) {
+        alert('No hay texto para analizar. Escribe o pega texto primero.');
+        return;
+      }
+
+      const stats = `Estadísticas:\n- Caracteres (con espacios): ${charsCountEl.textContent}\n- Caracteres (sin espacios): ${charsNoSpacesEl.textContent}\n- Palabras: ${wordsCountEl.textContent}\n- Oraciones: ${sentencesCountEl.textContent}\n- Tiempo estimado lectura: ${readTimeEl.textContent}`;
+
+      // Intentar copiar al portapapeles
+      navigator.clipboard.writeText(stats).then(() => {
+        // Confirmación simple
+        btnCopy.textContent = '✓ Copiado';
+        setTimeout(() => { btnCopy.textContent = 'Copiar estadísticas'; }, 1800);
+      }).catch((err) => {
+        console.error('Error copiando estadísticas:', err);
+        alert('Error al copiar. Intenta manualmente.');
+      });
+    }
+
+    // Event listeners: actualización en tiempo real
+    inputText.addEventListener('input', () => {
+      // Actualizar mientras el usuario escribe (en tiempo real)
+      try {
+        updateStats();
+      } catch (err) {
+        console.error('Error al actualizar estadísticas:', err);
+        errorMsg.style.display = 'block';
+        errorMsg.textContent = 'Se produjo un error al procesar el texto.';
+      }
+    });
+
+    // Botones
+    btnClear.addEventListener('click', clearAll);
+    btnCopy.addEventListener('click', copyStats);
+
+    // Inicialización: establecer métricas iniciales vacías
+    document.addEventListener('DOMContentLoaded', () => {
+      updateStats();
+    });
+  </script>
+</body>
+</html>
