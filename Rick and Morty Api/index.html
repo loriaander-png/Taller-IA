@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscador Rick and Morty</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .search-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .search-container input,
+        .search-container select {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+            min-width: 200px;
+        }
+
+        .search-container input {
+            flex: 1;
+            min-width: 250px;
+            max-width: 400px;
+        }
+
+        .search-container select {
+            min-width: 150px;
+        }
+
+        .search-container button {
+            padding: 12px 30px;
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1em;
+            transition: background-color 0.3s;
+        }
+
+        .search-container button:hover {
+            background-color: #ff5252;
+        }
+
+        .loading {
+            text-align: center;
+            color: white;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .characters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        @media (min-width: 768px) {
+            .characters-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .characters-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 480px) {
+            .characters-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .character-card {
+            background: white;
+            border-radius: 10px;
+            border: 2px solid #ddd;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .character-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .character-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            display: block;
+        }
+
+        .character-info {
+            padding: 20px;
+        }
+
+        .character-info h3 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 1.3em;
+        }
+
+        .info-item {
+            margin-bottom: 8px;
+            color: #555;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .info-label {
+            font-weight: bold;
+            color: #667eea;
+            min-width: 80px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .status-badge.alive {
+            background-color: #51cf66;
+            color: white;
+        }
+
+        .status-badge.dead {
+            background-color: #ff6b6b;
+            color: white;
+        }
+
+        .status-badge.unknown {
+            background-color: #ffd43b;
+            color: #333;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+        }
+
+        .pagination button {
+            padding: 10px 15px;
+            border: none;
+            background-color: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+
+        .pagination button:hover:not(:disabled) {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .pagination button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .pagination button.active {
+            background-color: #667eea;
+            color: white;
+        }
+
+        .error-message {
+            text-align: center;
+            color: #ff6b6b;
+            font-size: 1.1em;
+            padding: 20px;
+            display: none;
+        }
+
+        .error-message.active {
+            display: block;
+        }
+
+        .pagination-info {
+            text-align: center;
+            color: white;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎬 Rick and Morty Finder</h1>
+            <p>Busca tus personajes favoritos</p>
+        </div>
+
+        <div class="search-container">
+            <input 
+                type="text" 
+                id="searchInput" 
+                placeholder="Busca un personaje por nombre..."
+            >
+            <select id="statusFilter">
+                <option value="">Todos los estados</option>
+                <option value="alive">Vivo</option>
+                <option value="dead">Muerto</option>
+                <option value="unknown">Desconocido</option>
+            </select>
+            <button id="searchBtn">Buscar</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <p>Cargando personajes...</p>
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="pagination-info" id="paginationInfo"></div>
+
+        <div class="characters-grid" id="charactersGrid"></div>
+
+        <div class="pagination" id="pagination"></div>
+    </div>
+
+    <script src="api.js"></script>
+</body>
+</html>

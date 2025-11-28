@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reloj Digital con Alarma</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: #0f3460;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), inset 0 0 30px rgba(16, 255, 100, 0.1);
+      padding: 40px;
+      max-width: 600px;
+      width: 100%;
+      border: 2px solid rgba(16, 255, 100, 0.3);
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .title {
+      color: #10ff64;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(16, 255, 100, 0.5);
+      letter-spacing: 2px;
+    }
+
+    /* ===== SECCIÓN DEL RELOJ ===== */
+    .clock-section {
+      background: #1a1a2e;
+      border-radius: 15px;
+      padding: 30px;
+      margin-bottom: 30px;
+      border: 2px solid #10ff64;
+      box-shadow: inset 0 0 20px rgba(16, 255, 100, 0.1);
+    }
+
+    .clock {
+      font-size: 4rem;
+      color: #10ff64;
+      text-align: center;
+      margin-bottom: 15px;
+      font-weight: bold;
+      letter-spacing: 5px;
+      text-shadow: 0 0 20px rgba(16, 255, 100, 0.8);
+    }
+
+    .date {
+      font-size: 1.1rem;
+      color: #a0e7e5;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+
+    /* ===== SECCIÓN DE ALARMA ===== */
+    .alarm-section {
+      background: #1a1a2e;
+      border-radius: 15px;
+      padding: 25px;
+      border: 2px solid #ff6b6b;
+      margin-bottom: 20px;
+    }
+
+    .alarm-title {
+      color: #ff6b6b;
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      color: #a0e7e5;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+    }
+
+    input[type="time"] {
+      width: 100%;
+      padding: 12px;
+      background: #0f3460;
+      border: 2px solid #10ff64;
+      border-radius: 8px;
+      color: #10ff64;
+      font-size: 1.1rem;
+      font-family: 'Courier New', monospace;
+      outline: none;
+      transition: all 0.3s ease;
+    }
+
+    input[type="time"]:focus {
+      border-color: #ff6b6b;
+      box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+    }
+
+    input[type="time"]::placeholder {
+      color: #666;
+    }
+
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      flex: 1;
+      padding: 12px 20px;
+      border: 2px solid #10ff64;
+      background: transparent;
+      color: #10ff64;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: bold;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: 'Courier New', monospace;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    button:hover {
+      background: #10ff64;
+      color: #0f3460;
+      box-shadow: 0 0 15px rgba(16, 255, 100, 0.5);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .btn-cancel {
+      border-color: #ff6b6b;
+      color: #ff6b6b;
+    }
+
+    .btn-cancel:hover {
+      background: #ff6b6b;
+      color: #0f3460;
+      box-shadow: 0 0 15px rgba(255, 107, 107, 0.5);
+    }
+
+    /* Indicador de alarma activa */
+    .alarm-status {
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      font-weight: bold;
+      transition: all 0.3s ease;
+      min-height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .alarm-status.inactive {
+      background: rgba(160, 231, 229, 0.1);
+      color: #a0e7e5;
+      border: 2px solid #a0e7e5;
+    }
+
+    .alarm-status.active {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff6b6b;
+      border: 2px solid #ff6b6b;
+      animation: pulse 0.8s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% {
+        box-shadow: 0 0 10px rgba(255, 107, 107, 0.3);
+      }
+      50% {
+        box-shadow: 0 0 20px rgba(255, 107, 107, 0.6);
+      }
+    }
+
+    /* Notificación de alarma sonando */
+    .alarm-notification {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: slideDown 0.3s ease;
+    }
+
+    .alarm-notification.active {
+      display: flex;
+    }
+
+    @keyframes slideDown {
+      from {
+        opacity: 0;
+      }
+      to {
+        opacity: 1;
+      }
+    }
+
+    .alarm-popup {
+      background: #ff6b6b;
+      color: white;
+      padding: 40px;
+      border-radius: 20px;
+      text-align: center;
+      animation: blink 0.5s infinite;
+      box-shadow: 0 0 50px rgba(255, 107, 107, 0.8);
+    }
+
+    .alarm-popup h2 {
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      font-family: Arial, sans-serif;
+    }
+
+    .alarm-popup p {
+      font-size: 1.2rem;
+      margin-bottom: 30px;
+    }
+
+    .alarm-popup button {
+      background: white;
+      color: #ff6b6b;
+      border: none;
+      padding: 15px 40px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      border-radius: 8px;
+      font-weight: bold;
+      transition: all 0.3s ease;
+    }
+
+    .alarm-popup button:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    @keyframes blink {
+      0%, 49%, 100% {
+        opacity: 1;
+      }
+      50%, 99% {
+        opacity: 0.6;
+      }
+    }
+
+    /* Responsive */
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
+
+      .clock {
+        font-size: 3rem;
+        letter-spacing: 3px;
+      }
+
+      .date {
+        font-size: 1rem;
+      }
+
+      .title {
+        font-size: 1.2rem;
+      }
+
+      .alarm-popup h2 {
+        font-size: 2rem;
+      }
+
+      .button-group {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="title">⏰ RELOJ DIGITAL CON ALARMA</div>
+    </div>
+
+    <!-- Sección del Reloj -->
+    <div class="clock-section">
+      <div class="clock" id="clock">00:00:00</div>
+      <div class="date" id="date">Cargando...</div>
+    </div>
+
+    <!-- Sección de Alarma -->
+    <div class="alarm-section">
+      <div class="alarm-title">🔔 CONFIGURAR ALARMA</div>
+      
+      <div class="input-group">
+        <label for="alarmTime">Selecciona la hora de la alarma:</label>
+        <input type="time" id="alarmTime">
+      </div>
+
+      <div class="button-group">
+        <button onclick="establecerAlarma()">Establecer Alarma</button>
+        <button class="btn-cancel" onclick="cancelarAlarma()">Cancelar Alarma</button>
+      </div>
+
+      <div class="alarm-status inactive" id="alarmStatus">
+        ❌ Sin alarma configurada
+      </div>
+    </div>
+  </div>
+
+  <!-- Notificación cuando suena la alarma -->
+  <div class="alarm-notification" id="alarmNotification">
+    <div class="alarm-popup">
+      <h2>🔔 ¡ALARMA!</h2>
+      <p id="alarmMessage">Es hora de levantarse</p>
+      <button onclick="apagarAlarma()">Apagar Alarma</button>
+    </div>
+  </div>
+
+  <script>
+    // ===== VARIABLES GLOBALES =====
+    let alarmTime = null;  // Hora de la alarma (formato HH:MM)
+    let alarmActive = false;  // Estado de la alarma
+    let alarmSounding = false;  // Indica si la alarma está sonando
+
+    const meses = [
+      'enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+      'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'
+    ];
+
+    const dias = [
+      'domingo', 'lunes', 'martes', 'miércoles',
+      'jueves', 'viernes', 'sábado'
+    ];
+
+    /**
+     * Formatea un número con ceros a la izquierda
+     * @param {number} num - Número a formatear
+     * @returns {string} Número formateado (ej: 08)
+     */
+    function formatoHora(num) {
+      return String(num).padStart(2, '0');
+    }
+
+    /**
+     * Obtiene la fecha actual formateada en español
+     * @returns {string} Fecha formateada (ej: lunes, 26 de noviembre de 2025)
+     */
+    function obtenerFecha() {
+      const ahora = new Date();
+      const nombreDia = dias[ahora.getDay()];
+      const dia = ahora.getDate();
+      const nombreMes = meses[ahora.getMonth()];
+      const año = ahora.getFullYear();
+
+      return `${nombreDia}, ${dia} de ${nombreMes} de ${año}`;
+    }
+
+    /**
+     * Actualiza el reloj digital cada segundo
+     * - Obtiene hora actual (HH:MM:SS)
+     * - Actualiza la fecha en español
+     * - Verifica si debe sonar la alarma
+     */
+    function actualizarReloj() {
+      const ahora = new Date();
+      
+      // Obtener horas, minutos y segundos
+      const horas = formatoHora(ahora.getHours());
+      const minutos = formatoHora(ahora.getMinutes());
+      const segundos = formatoHora(ahora.getSeconds());
+
+      // Actualizar display del reloj
+      document.getElementById('clock').textContent = `${horas}:${minutos}:${segundos}`;
+
+      // Actualizar fecha
+      document.getElementById('date').textContent = obtenerFecha();
+
+      // Verificar si la alarma debe sonar
+      verificarAlarma(horas, minutos);
+    }
+
+    /**
+     * Verifica si la hora actual coincide con la alarma configurada
+     * @param {string} horas - Hora actual (HH)
+     * @param {string} minutos - Minutos actuales (MM)
+     */
+    function verificarAlarma(horas, minutos) {
+      // Si no hay alarma activa o ya está sonando, no hacer nada
+      if (!alarmActive || alarmSounding) return;
+
+      // Comparar hora actual con hora de alarma (formato HH:MM)
+      const horaActual = `${horas}:${minutos}`;
+
+      if (horaActual === alarmTime) {
+        // ¡LA ALARMA DEBE SONAR!
+        hacerSonarAlarma();
+      }
+    }
+
+    /**
+     * Activa la alarma visual y sonora
+     * - Muestra notificación de alarma
+     * - Reproduce sonido (alert como simulación)
+     * - Marca alarma como sonando
+     */
+    function hacerSonarAlarma() {
+      alarmSounding = true;
+
+      // Mostrar notificación visual
+      const notification = document.getElementById('alarmNotification');
+      notification.classList.add('active');
+
+      // Simular sonido de alarma (alert del navegador)
+      // En una aplicación real, usar Web Audio API o element <audio>
+      const audio = new Audio('data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA==');
+      
+      // Reproducir beep repetido (simulado con alert)
+      for (let i = 0; i < 3; i++) {
+        setTimeout(() => {
+          console.log('🔔 ALARMA SONANDO');
+        }, i * 500);
+      }
+    }
+
+    /**
+     * Apaga la alarma que está sonando
+     * - Oculta notificación visual
+     * - Desactiva el estado de alarma sonando
+     */
+    function apagarAlarma() {
+      alarmSounding = false;
+      
+      // Ocultar notificación
+      const notification = document.getElementById('alarmNotification');
+      notification.classList.remove('active');
+
+      // Desactivar alarma automáticamente
+      alarmActive = false;
+      actualizarEstadoAlarma();
+
+      console.log('✓ Alarma apagada');
+    }
+
+    /**
+     * Establece una alarma con la hora seleccionada
+     * - Valida que la hora sea futura
+     * - Activa el estado de alarma
+     * - Actualiza indicador visual
+     */
+    function establecerAlarma() {
+      const input = document.getElementById('alarmTime');
+      const horaSeleccionada = input.value;
+
+      // Validar que se haya seleccionado una hora
+      if (!horaSeleccionada) {
+        alert('❌ Por favor, selecciona una hora');
+        return;
+      }
+
+      // Comparar con hora actual para validar que sea futura
+      const ahora = new Date();
+      const horaActual = `${formatoHora(ahora.getHours())}:${formatoHora(ahora.getMinutes())}`;
+
+      if (horaSeleccionada <= horaActual) {
+        alert('⚠️ La hora debe ser futura (posterior a la actual)');
+        return;
+      }
+
+      // Guardar hora de alarma y activar
+      alarmTime = horaSeleccionada;
+      alarmActive = true;
+
+      // Actualizar interfaz
+      actualizarEstadoAlarma();
+      console.log(`✓ Alarma configurada para las ${alarmTime}`);
+    }
+
+    /**
+     * Cancela la alarma actual
+     * - Desactiva la alarma
+     * - Limpia el input
+     * - Actualiza indicador visual
+     */
+    function cancelarAlarma() {
+      alarmActive = false;
+      alarmSounding = false;
+      alarmTime = null;
+
+      // Limpiar input
+      document.getElementById('alarmTime').value = '';
+
+      // Ocultar notificación si está visible
+      const notification = document.getElementById('alarmNotification');
+      notification.classList.remove('active');
+
+      // Actualizar interfaz
+      actualizarEstadoAlarma();
+      console.log('✓ Alarma cancelada');
+    }
+
+    /**
+     * Actualiza el indicador visual del estado de la alarma
+     */
+    function actualizarEstadoAlarma() {
+      const statusEl = document.getElementById('alarmStatus');
+
+      if (alarmActive && alarmTime) {
+        statusEl.classList.remove('inactive');
+        statusEl.classList.add('active');
+        statusEl.textContent = `🔔 Alarma activa para las ${alarmTime}`;
+      } else {
+        statusEl.classList.remove('active');
+        statusEl.classList.add('inactive');
+        statusEl.textContent = '❌ Sin alarma configurada';
+      }
+    }
+
+    /**
+     * Inicializa la aplicación
+     * - Actualiza reloj inmediatamente
+     * - Configura actualización cada segundo
+     */
+    function inicializar() {
+      // Actualizar reloj inmediatamente
+      actualizarReloj();
+
+      // Actualizar reloj cada segundo (1000 ms)
+      setInterval(actualizarReloj, 1000);
+
+      // Initializar estado de alarma
+      actualizarEstadoAlarma();
+
+      console.log('✓ Reloj digital inicializado');
+    }
+
+    // Iniciar la aplicación cuando el DOM esté listo
+    window.addEventListener('DOMContentLoaded', inicializar);
+  </script>
+</body>
+</html>

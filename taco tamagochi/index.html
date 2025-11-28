@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐱 Taco Tamagotchi - Tu Gato Virtual</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 1em;
+        }
+
+        /* Pantalla del Tamagotchi */
+        .tamagotchi-screen {
+            background: linear-gradient(135deg, #ffd89b 0%, #19547b 100%);
+            border: 8px solid #333;
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            margin-bottom: 30px;
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cat-animation {
+            font-size: 80px;
+            margin-bottom: 20px;
+            animation: bounce 0.6s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .cat-animation.sad {
+            animation: shake 0.4s infinite;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .cat-animation.sleeping {
+            animation: none;
+            opacity: 0.7;
+        }
+
+        .taco-speech {
+            background: white;
+            border: 2px solid #333;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            font-size: 1.1em;
+            color: #333;
+            font-weight: bold;
+            min-height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .taco-speech::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 20px;
+            width: 0;
+            height: 0;
+            border-left: 10px solid transparent;
+            border-right: 0px solid transparent;
+            border-top: 10px solid white;
+        }
+
+        /* Barras de estado */
+        .stats {
+            margin-bottom: 30px;
+        }
+
+        .stat-item {
+            margin-bottom: 15px;
+        }
+
+        .stat-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .stat-label span:first-child {
+            font-size: 0.95em;
+        }
+
+        .stat-label span:last-child {
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .stat-bar {
+            background: #e0e0e0;
+            border: 2px solid #333;
+            border-radius: 10px;
+            height: 25px;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .stat-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.8em;
+        }
+
+        .hunger-fill {
+            background: linear-gradient(90deg, #ff6b6b, #ff8c8c);
+        }
+
+        .energy-fill {
+            background: linear-gradient(90deg, #4ecdc4, #44a08d);
+        }
+
+        .happiness-fill {
+            background: linear-gradient(90deg, #ffd93d, #ffb700);
+        }
+
+        /* Botones */
+        .buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            padding: 15px;
+            border: none;
+            border-radius: 10px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            color: white;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .feed-btn {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .play-btn {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .sleep-btn {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            grid-column: 1 / -1;
+        }
+
+        /* Estado crítico */
+        .critical {
+            animation: pulse 0.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .game-over {
+            text-align: center;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .game-over.show {
+            display: block;
+        }
+
+        .game-over h2 {
+            color: #d32f2f;
+            font-size: 1.5em;
+            margin-bottom: 10px;
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .cat-animation {
+                font-size: 60px;
+            }
+
+            .tamagotchi-screen {
+                min-height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐱 Taco Tamagotchi</h1>
+            <p>Tu gato virtual estilo retro</p>
+        </div>
+
+        <!-- Pantalla del Tamagotchi -->
+        <div class="tamagotchi-screen">
+            <div class="cat-animation" id="catEmoji">😺</div>
+            <div class="taco-speech" id="tacoSpeech">¡Hola! Soy Taco 🐱</div>
+        </div>
+
+        <!-- Barras de estado -->
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-label">
+                    <span>🍖 Hambre</span>
+                    <span id="hungerValue">50</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill hunger-fill" id="hungerBar" style="width: 50%"></div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-label">
+                    <span>⚡ Energía</span>
+                    <span id="energyValue">80</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill energy-fill" id="energyBar" style="width: 80%"></div>
+                </div>
+            </div>
+
+            <div class="stat-item">
+                <div class="stat-label">
+                    <span>💛 Felicidad</span>
+                    <span id="happinessValue">70</span>
+                </div>
+                <div class="stat-bar">
+                    <div class="stat-fill happiness-fill" id="happinessBar" style="width: 70%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estado crítico -->
+        <div class="game-over" id="gameOver">
+            <h2>😿 Taco se fue a dormir...</h2>
+            <p>¡Cuidaste muy mal a Taco! Haz clic en REINICIAR para intentar de nuevo.</p>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="buttons">
+            <button class="feed-btn" onclick="feed()">🍖 Alimentar</button>
+            <button class="play-btn" onclick="play()">🎮 Jugar</button>
+            <button class="sleep-btn" onclick="sleep()">😴 Dormir</button>
+            <button class="reset-btn" onclick="resetTaco()">🔄 Reiniciar</button>
+        </div>
+    </div>
+
+    <script src="taco.js"></script>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width,initial-scale=1" />
+	<title>Detector de Palíndromos</title>
+	<style>
+		:root{--bg:#fafafa;--card:#fff;--muted:#586069;--accent:#0ea5e9;--good:#16a34a;--bad:#ef4444}
+		*{box-sizing:border-box}
+		html,body{height:100%}
+		body{font-family:Inter,system-ui,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(180deg,#f8fafc,#eef2ff);display:flex;align-items:center;justify-content:center;padding:24px}
+		.card{background:var(--card);padding:22px;border-radius:12px;width:100%;max-width:720px;box-shadow:0 8px 30px rgba(2,6,23,0.06)}
+		h1{margin:0 0 8px;font-size:1.4rem}
+		p.lead{margin:0 0 16px;color:var(--muted)}
+		.row{display:flex;gap:12px}
+		.row .col{flex:1}
+		input[type="text"]{width:100%;padding:12px;border-radius:8px;border:1px solid #e6eef8;font-size:1rem}
+		.actions{display:flex;gap:8px;margin-top:12px}
+		button{padding:10px 14px;border-radius:8px;border:0;cursor:pointer;font-weight:700}
+		.btn-check{background:linear-gradient(90deg,var(--accent),#7dd3fc);color:#04263a}
+		.btn-clear{background:#f3f4f6;color:#111}
+		.btn-copy{background:#111827;color:#fff}
+		.result{margin-top:16px;padding:12px;border-radius:8px;border:1px solid #eef2ff;background:#fbfeff}
+		.result.good{border-color:rgba(22,163,74,0.15);background:linear-gradient(180deg,#ecfdf5,#f0fdf4)}
+		.result.bad{border-color:rgba(239,68,68,0.12);background:linear-gradient(180deg,#fff1f2,#fff7f7)}
+		.meta{color:var(--muted);font-size:0.9rem;margin-top:8px}
+		.small{font-size:0.9rem;color:var(--muted)}
+		.controls-compact{display:flex;gap:8px;align-items:center}
+		@media (max-width:640px){.row{flex-direction:column}}
+	</style>
+</head>
+<body>
+	<main class="card" role="main">
+		<h1>Detector de Palíndromos</h1>
+		<p class="lead">Escribe una palabra o frase y pulsa <strong>Comparar</strong>. Se ignoran espacios y caracteres especiales.</p>
+
+		<div class="row">
+			<div class="col">
+				<label for="textInput" class="small">Texto a comprobar</label>
+				<input id="textInput" type="text" placeholder="Ej: anita lava la tina" aria-label="Texto para comprobar palíndromo">
+			</div>
+			<div style="width:180px;display:flex;flex-direction:column;justify-content:flex-end">
+				<div class="controls-compact">
+					<button id="compareBtn" class="btn-check">Comparar</button>
+					<button id="clearBtn" class="btn-clear">Limpiar</button>
+				</div>
+				<div style="margin-top:8px">
+					<button id="copyBtn" class="btn-copy">Copiar resultado</button>
+				</div>
+			</div>
+		</div>
+
+		<div id="result" class="result" role="status" aria-live="polite" style="display:none">
+			<div id="resultText"></div>
+			<div id="cleanText" class="meta"></div>
+		</div>
+
+		<p class="meta" style="margin-top:12px">Archivo de lógica: <code>palindromo.js</code></p>
+	</main>
+
+	<!-- Cargar la lógica existente del attachment -->
+	<script src="palindromo.js"></script>
+	<script>
+		// Referencias DOM
+		const textInput = document.getElementById('textInput');
+		const compareBtn = document.getElementById('compareBtn');
+		const clearBtn = document.getElementById('clearBtn');
+		const copyBtn = document.getElementById('copyBtn');
+		const result = document.getElementById('result');
+		const resultText = document.getElementById('resultText');
+		const cleanText = document.getElementById('cleanText');
+
+		/**
+		 * Limpia la cadena para mostrarla (coincide con la lógica de palíndromo)
+		 * Esta función formatea la cadena removiendo caracteres no alfanuméricos
+		 * y pasando a minúsculas para mostrar cómo se evaluó.
+		 * @param {string} s
+		 * @returns {string}
+		 */
+		function limpiarTextoVisible(s) {
+			return s.toLowerCase().replace(/[^a-z0-9]/gi, '');
+		}
+
+		/**
+		 * Ejecuta la comprobación usando esPalindromo del archivo palindromo.js
+		 * Muestra resultado visual (clase good/bad) y texto explicativo.
+		 */
+		function comprobar() {
+			const val = textInput.value;
+			// Validación básica
+			if (typeof val !== 'string' || val.trim().length === 0) {
+				result.style.display = 'block';
+				result.className = 'result bad';
+				resultText.textContent = 'Por favor ingresa una palabra o frase.';
+				cleanText.textContent = '';
+				return;
+			}
+
+			try {
+				// Lógica principal provista por palindromo.js
+				const es = esPalindromo(val);
+				const limpio = limpiarTextoVisible(val);
+
+				result.style.display = 'block';
+				if (es) {
+					result.className = 'result good';
+					resultText.textContent = '✅ Es palíndromo';
+				} else {
+					result.className = 'result bad';
+					resultText.textContent = '❌ No es palíndromo';
+				}
+				cleanText.textContent = `Evaluado como: "${limpio}"`;
+			} catch (err) {
+				// Manejo de errores: mostrar mensaje amigable y log en consola
+				console.error('Error comprobando palíndromo:', err);
+				result.style.display = 'block';
+				result.className = 'result bad';
+				resultText.textContent = 'Se produjo un error al evaluar el texto.';
+				cleanText.textContent = '';
+			}
+		}
+
+		/**
+		 * Copia el resultado visible al portapapeles
+		 */
+		function copiarResultado() {
+			if (result.style.display === 'none') return alert('No hay resultado para copiar.');
+			const texto = resultText.textContent + (cleanText.textContent ? ' — ' + cleanText.textContent : '');
+			navigator.clipboard.writeText(texto).then(() => {
+				copyBtn.textContent = '✓ Copiado';
+				setTimeout(() => copyBtn.textContent = 'Copiar resultado', 1500);
+			}).catch(err => {
+				console.error('Error copiando:', err);
+				alert('No se pudo copiar automáticamente. Selecciona y copia manualmente.');
+			});
+		}
+
+		// Eventos
+		compareBtn.addEventListener('click', comprobar);
+		clearBtn.addEventListener('click', () => {
+			textInput.value = '';
+			result.style.display = 'none';
+			textInput.focus();
+		});
+		copyBtn.addEventListener('click', copiarResultado);
+
+		// Permitir pulsar Enter para comprobar
+		textInput.addEventListener('keydown', (e) => {
+			if (e.key === 'Enter' && !e.shiftKey) {
+				e.preventDefault();
+				comprobar();
+			}
+		});
+
+		// Accesibilidad: focus inicial
+		window.addEventListener('DOMContentLoaded', () => textInput.focus());
+	</script>
+</body>
+</html>

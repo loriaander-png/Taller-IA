@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokédex - Buscador de Pokémon</title>
+    <style>
+      :root{
+        --accent:#ef4444;
+        --bg:#f3f4f6;
+        --card:#fff;
+        --muted:#6b7280;
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+        margin:0;
+        padding:20px;
+        background:linear-gradient(135deg,#fee2e2,#fef2f2);
+      }
+
+      .header{
+        max-width:1200px;
+        margin:0 auto;
+        text-align:center;
+        margin-bottom:30px;
+      }
+      .header h1{
+        margin:0;
+        color:#b91c1c;
+        font-size:2.2rem;
+        letter-spacing:1px;
+      }
+      .header p{
+        color:var(--muted);
+        margin:8px 0 0;
+      }
+
+      .search-wrap{
+        max-width:1200px;
+        margin:0 auto 30px;
+        display:flex;
+        gap:10px;
+      }
+      #pokemonInput{
+        flex:1;
+        padding:12px 16px;
+        border-radius:8px;
+        border:1px solid #e6e7eb;
+        font-size:1rem;
+      }
+      #btnBuscar{
+        padding:12px 20px;
+        background:linear-gradient(90deg,#dc2626,#b91c1c);
+        color:white;
+        border:0;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:700;
+        transition:all 300ms ease;
+      }
+      #btnBuscar:hover{
+        transform:translateY(-2px);
+        box-shadow:0 10px 20px rgba(220,38,38,0.3);
+      }
+
+      .container{
+        max-width:1200px;
+        margin:0 auto;
+      }
+
+      .pokemon-grid{
+        display:grid;
+        grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+        gap:16px;
+        margin-bottom:30px;
+      }
+      .pokemon-card{
+        background:var(--card);
+        border-radius:12px;
+        padding:12px;
+        cursor:pointer;
+        transition:all 300ms ease;
+        box-shadow:0 4px 12px rgba(0,0,0,0.08);
+        text-align:center;
+      }
+      .pokemon-card:hover{
+        transform:translateY(-8px);
+        box-shadow:0 12px 30px rgba(220,38,38,0.2);
+      }
+      .pokemon-card img{
+        width:140px;
+        height:140px;
+        object-fit:contain;
+        margin:8px 0;
+      }
+      .pokemon-name{
+        font-weight:700;
+        color:#111;
+        margin:8px 0;
+      }
+      .pokemon-id{
+        font-size:0.85rem;
+        color:var(--muted);
+      }
+
+      .pagination{
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        gap:8px;
+        margin-bottom:40px;
+      }
+      .pagination button{
+        padding:8px 12px;
+        background:var(--card);
+        border:1px solid #e6e7eb;
+        border-radius:6px;
+        cursor:pointer;
+        transition:all 200ms ease;
+      }
+      .pagination button:hover:not(:disabled){
+        background:var(--accent);
+        color:white;
+      }
+      .pagination button:disabled{
+        opacity:0.5;
+        cursor:not-allowed;
+      }
+      .pagination .info{
+        color:var(--muted);
+        font-size:0.95rem;
+      }
+
+      /* Modal */
+      .modal{
+        display:none;
+        position:fixed;
+        top:0;
+        left:0;
+        right:0;
+        bottom:0;
+        background:rgba(0,0,0,0.5);
+        z-index:1000;
+        align-items:center;
+        justify-content:center;
+      }
+      .modal.active{
+        display:flex;
+      }
+      .modal-content{
+        background:var(--card);
+        border-radius:16px;
+        width:90%;
+        max-width:500px;
+        padding:24px;
+        position:relative;
+        max-height:90vh;
+        overflow-y:auto;
+        animation:slideUp 300ms ease;
+      }
+      @keyframes slideUp{
+        from{
+          opacity:0;
+          transform:translateY(30px);
+        }
+        to{
+          opacity:1;
+          transform:translateY(0);
+        }
+      }
+      .close-modal{
+        position:absolute;
+        top:16px;
+        right:16px;
+        background:none;
+        border:none;
+        font-size:24px;
+        cursor:pointer;
+        color:var(--muted);
+      }
+      .modal-header{
+        text-align:center;
+        margin-bottom:20px;
+      }
+      .modal-header h2{
+        margin:0;
+        color:var(--accent);
+      }
+      .modal-img{
+        width:200px;
+        height:200px;
+        object-fit:contain;
+        margin:0 auto;
+        display:block;
+      }
+      .modal-stats{
+        margin-top:20px;
+      }
+      .stat-row{
+        display:flex;
+        justify-content:space-between;
+        padding:8px 0;
+        border-bottom:1px solid #f3f4f6;
+      }
+      .stat-label{
+        font-weight:700;
+        color:var(--muted);
+      }
+      .stat-value{
+        color:#111;
+      }
+
+      /* Cargando */
+      .loading{
+        text-align:center;
+        padding:40px;
+        color:var(--muted);
+      }
+
+      @media (max-width:768px){
+        .pokemon-grid{
+          grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+          gap:12px;
+        }
+        .search-wrap{
+          flex-direction:column;
+        }
+      }
+    </style>
+</head>
+<body>
+    <div class="header">
+      <h1>🔴 Pokédex</h1>
+      <p>Explorar la base de datos completa de Pokémon</p>
+    </div>
+
+    <div class="search-wrap">
+      <input type="text" id="pokemonInput" placeholder="Busca por nombre o ID (ej: pikachu, 25)">
+      <button id="btnBuscar">Buscar</button>
+    </div>
+
+    <div class="container">
+      <div id="resultado" class="pokemon-grid">
+        <!-- Cartas de Pokémon se generan aquí -->
+      </div>
+
+      <div class="pagination" id="paginacion">
+        <!-- Controles de paginación se generan aquí -->
+      </div>
+    </div>
+
+    <!-- Modal de detalles -->
+    <div id="modal" class="modal">
+      <div class="modal-content">
+        <button class="close-modal" onclick="cerrarModal()">&times;</button>
+        <div class="modal-header" id="modalHeader">
+          <h2 id="modalName">-</h2>
+          <img id="modalImg" class="modal-img" src="" alt="">
+        </div>
+        <div class="modal-stats" id="modalStats">
+          <!-- Estadísticas se generan aquí -->
+        </div>
+      </div>
+    </div>
+
+    <script src="api.js"></script>
+</body>
+</html>

@@ -3,28 +3,542 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Intro al DOM</title>
+    <title>Taller de Programación con IA</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: sans-serif; padding: 20px; }
-        .caja {
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 40px 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 60px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5em;
+            color: white;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .header p {
+            font-size: 1.3em;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 300;
+            letter-spacing: 1px;
+        }
+
+        .decorative-line {
             width: 100px;
-            height: 100px;
-            background-color: lightblue;
-            margin: 10px 0;
+            height: 4px;
+            background: linear-gradient(90deg, #ff6b6b, #667eea, #764ba2);
+            margin: 20px auto;
+            border-radius: 2px;
+            animation: expandWidth 0.8s ease-out 0.2s both;
+        }
+
+        @keyframes expandWidth {
+            from {
+                width: 0;
+            }
+            to {
+                width: 100px;
+            }
+        }
+
+        /* Buscador */
+        .search-container {
+            margin-bottom: 50px;
             display: flex;
-            align-items: center;
             justify-content: center;
+            animation: fadeIn 1s ease-out 0.3s both;
+        }
+
+        .search-input {
+            padding: 15px 25px;
+            font-size: 1em;
+            border: none;
+            border-radius: 50px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .search-input:focus {
+            outline: none;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            transform: scale(1.05);
+        }
+
+        /* Grid de proyectos */
+        .projects-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .project-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            animation: fadeInUp 0.6s ease-out both;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .project-card:nth-child(1) { animation-delay: 0.1s; }
+        .project-card:nth-child(2) { animation-delay: 0.2s; }
+        .project-card:nth-child(3) { animation-delay: 0.3s; }
+        .project-card:nth-child(4) { animation-delay: 0.4s; }
+        .project-card:nth-child(5) { animation-delay: 0.5s; }
+        .project-card:nth-child(6) { animation-delay: 0.6s; }
+        .project-card:nth-child(7) { animation-delay: 0.7s; }
+        .project-card:nth-child(8) { animation-delay: 0.8s; }
+        .project-card:nth-child(9) { animation-delay: 0.9s; }
+        .project-card:nth-child(10) { animation-delay: 1s; }
+
+        .project-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s ease;
+            z-index: 1;
+        }
+
+        .project-card:hover::before {
+            left: 100%;
+        }
+
+        .project-card:hover {
+            transform: translateY(-15px) scale(1.05);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+        }
+
+        .project-icon {
+            font-size: 3em;
+            margin-bottom: 15px;
+            display: inline-block;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+
+        .project-card:nth-child(1) .project-icon { animation-delay: 0s; }
+        .project-card:nth-child(2) .project-icon { animation-delay: 0.2s; }
+        .project-card:nth-child(3) .project-icon { animation-delay: 0.4s; }
+        .project-card:nth-child(4) .project-icon { animation-delay: 0.6s; }
+        .project-card:nth-child(5) .project-icon { animation-delay: 0.8s; }
+        .project-card:nth-child(6) .project-icon { animation-delay: 1s; }
+        .project-card:nth-child(7) .project-icon { animation-delay: 1.2s; }
+        .project-card:nth-child(8) .project-icon { animation-delay: 1.4s; }
+        .project-card:nth-child(9) .project-icon { animation-delay: 1.6s; }
+        .project-card:nth-child(10) .project-icon { animation-delay: 1.8s; }
+
+        .project-title {
+            font-size: 1.5em;
+            color: #333;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .project-description {
+            color: #666;
+            font-size: 0.95em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        .project-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 25px;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            font-size: 0.9em;
+            position: relative;
+            z-index: 2;
+        }
+
+        .project-link:hover {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Filtro */
+        .filter-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            animation: fadeIn 1s ease-out 0.5s both;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            border: 2px solid white;
+            background: transparent;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .filter-btn:hover,
+        .filter-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: white;
+            margin-top: 60px;
+            padding-top: 40px;
+            border-top: 2px solid rgba(255, 255, 255, 0.2);
+            animation: fadeInUp 0.8s ease-out 1s both;
+        }
+
+        .footer p {
+            font-weight: 300;
+            font-size: 1.1em;
+            margin-bottom: 10px;
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-link {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            font-size: 0.95em;
+        }
+
+        .footer-link:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        /* Hidden clase para filtrado */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Animaciones */
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2.5em;
+            }
+
+            .header p {
+                font-size: 1.1em;
+            }
+
+            .projects-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: 20px;
+            }
+
+            .project-icon {
+                font-size: 2.5em;
+            }
+
+            .project-title {
+                font-size: 1.3em;
+            }
+
+            .filter-buttons {
+                gap: 10px;
+            }
+
+            .filter-btn {
+                padding: 8px 15px;
+                font-size: 0.85em;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 20px 10px;
+            }
+
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .header p {
+                font-size: 1em;
+            }
+
+            .projects-grid {
+                grid-template-columns: 1fr;
+                gap: 15px;
+            }
+
+            .filter-buttons {
+                flex-direction: column;
+            }
+
+            .filter-btn {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
-    <h1>Manipulando el DOM con JS</h1>
-    
-    <div id="miCaja" class="caja">Caja</div>
-    
-    <button id="btnCambiarColor">Cambiar Color</button>
-    <button id="btnCambiarTexto">Cambiar Texto</button>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚀 Taller de Programación con IA</h1>
+            <p>Explora nuestros proyectos educativos</p>
+            <div class="decorative-line"></div>
+        </div>
 
-    <script src="dom.js"></script>
+        <!-- Buscador -->
+        <div class="search-container">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="🔍 Buscar proyectos..."
+            >
+        </div>
+
+        <!-- Filtros -->
+        <div class="filter-buttons">
+            <button class="filter-btn active" onclick="filterProjects('todos')">Todos</button>
+            <button class="filter-btn" onclick="filterProjects('juegos')">🎮 Juegos</button>
+            <button class="filter-btn" onclick="filterProjects('utilidad')">🛠️ Utilidad</button>
+            <button class="filter-btn" onclick="filterProjects('api')">🌐 APIs</button>
+        </div>
+
+        <!-- Grid de proyectos -->
+        <div class="projects-grid" id="projectsGrid">
+            <!-- Los proyectos se cargarán aquí con JavaScript -->
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>✨ Aprende, Crea, Innova ✨</p>
+            <p>Un proyecto educativo para dominar JavaScript y desarrollo web</p>
+            <div class="footer-links">
+                <a href="#" class="footer-link">📚 Documentación</a>
+                <a href="#" class="footer-link">💬 Soporte</a>
+                <a href="#" class="footer-link">🌟 GitHub</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Datos de proyectos
+        const projects = [
+            {
+                title: 'Calculadora',
+                icon: '🧮',
+                description: 'Calculadora interactiva con operaciones básicas y avanzadas.',
+                link: 'calculadora/index.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Reloj Alarma',
+                icon: '⏰',
+                description: 'Reloj digital con función de alarma personalizable.',
+                link: 'alarma/reloj-alarma.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Analizador de Texto',
+                icon: '📝',
+                description: 'Analiza y procesa textos con múltiples funcionalidades.',
+                link: 'analizador de texto/analizador-texto.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Generador de Colores',
+                icon: '🎨',
+                description: 'Genera paletas de colores aleatorias y personalizables.',
+                link: 'colores/generador-colores.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Conversor de Temperaturas',
+                icon: '🌡️',
+                description: 'Convierte entre diferentes escalas de temperatura.',
+                link: 'temperaturas/conversor-temperaturas.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Quiz Interactivo',
+                icon: '❓',
+                description: 'Prueba tus conocimientos con un quiz divertido.',
+                link: 'quiz/quiz.html',
+                category: 'juegos'
+            },
+            {
+                title: 'Palindromo',
+                icon: '🔤',
+                description: 'Verifica si una palabra es un palíndromo.',
+                link: 'Palindromo/index.html',
+                category: 'utilidad'
+            },
+            {
+                title: 'Rick and Morty API',
+                icon: '👽',
+                description: 'Explora personajes de Rick and Morty desde una API.',
+                link: 'Rick and Morty Api/index.html',
+                category: 'api'
+            },
+            {
+                title: 'Taco Tamagotchi',
+                icon: '🐱',
+                description: 'Cuida a tu gato virtual estilo Tamagotchi retro.',
+                link: 'taco tamagochi/index.html',
+                category: 'juegos'
+            },
+            {
+                title: 'Buscador de Razas',
+                icon: '🐾',
+                description: 'Descubre información sobre diferentes razas de gatos.',
+                link: 'miniproyecto/index.html',
+                category: 'api'
+            },
+            {
+                title: 'Pokédex',
+                icon: '🔴',
+                description: 'Busca y explora información detallada de todos los Pokémon.',
+                link: 'api/index.html',
+                category: 'api'
+            }
+        ];
+
+        // Renderizar proyectos
+        function renderProjects(projectsToShow = projects) {
+            const grid = document.getElementById('projectsGrid');
+            grid.innerHTML = '';
+
+            projectsToShow.forEach(project => {
+                const card = document.createElement('div');
+                card.className = 'project-card';
+                card.dataset.category = project.category;
+
+                card.innerHTML = `
+                    <div class="project-icon">${project.icon}</div>
+                    <h3 class="project-title">${project.title}</h3>
+                    <p class="project-description">${project.description}</p>
+                    <a href="${project.link}" class="project-link">Ver Proyecto →</a>
+                `;
+
+                grid.appendChild(card);
+            });
+        }
+
+        // Filtrar proyectos
+        function filterProjects(category) {
+            // Actualizar botones activos
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Filtrar proyectos
+            if (category === 'todos') {
+                renderProjects(projects);
+            } else {
+                const filtered = projects.filter(p => p.category === category);
+                renderProjects(filtered);
+            }
+        }
+
+        // Búsqueda
+        document.getElementById('searchInput').addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            const filtered = projects.filter(p => 
+                p.title.toLowerCase().includes(searchTerm) ||
+                p.description.toLowerCase().includes(searchTerm)
+            );
+            renderProjects(filtered);
+        });
+
+        // Inicializar
+        window.addEventListener('DOMContentLoaded', () => {
+            renderProjects();
+        });
+    </script>
 </body>
 </html>

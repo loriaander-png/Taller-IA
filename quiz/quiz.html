@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quiz - JavaScript Básico</title>
+  <link rel="stylesheet" href="quiz.css">
+</head>
+<body>
+  <main class="quiz-app" aria-live="polite">
+    <!-- Pantalla de inicio -->
+    <section id="start-screen" class="card">
+      <h1 class="title">Quiz: JavaScript Básico</h1>
+      <p class="subtitle">Pon a prueba tus conocimientos básicos de JavaScript.</p>
+
+      <div class="controls">
+        <label for="category">Categoría (opcional)</label>
+        <select id="category">
+          <option value="all">Todas</option>
+          <option value="basico">Básico</option>
+        </select>
+      </div>
+
+      <button id="startBtn" class="btn primary">Comenzar Quiz</button>
+    </section>
+
+    <!-- Pantalla de pregunta -->
+    <section id="question-screen" class="card hidden" aria-hidden="true">
+      <div class="top-row">
+        <div id="question-number" class="question-number">Pregunta 1 de 5</div>
+        <div class="progress-wrap" aria-hidden="true">
+          <div id="progressBar" class="progress-bar" style="width:0%"></div>
+        </div>
+      </div>
+
+      <h2 id="questionText" class="question-text">¿Pregunta?</h2>
+
+      <div id="options" class="options" role="list">
+        <!-- Opciones generadas dinámicamente -->
+      </div>
+
+      <div class="next-area">
+        <button id="nextBtn" class="btn" disabled>Siguiente</button>
+      </div>
+    </section>
+
+    <!-- Pantalla de resultados -->
+    <section id="result-screen" class="card hidden" aria-hidden="true">
+      <h2>Resultados</h2>
+      <p class="score" id="scoreText">0 de 5 correctas</p>
+      <p class="percentage" id="percentText">0%</p>
+      <p class="message" id="resultMessage">Mensaje</p>
+      <button id="retryBtn" class="btn primary">Reintentar</button>
+    </section>
+
+  </main>
+
+  <script src="quiz.js" defer></script>
+</body>
+</html>
